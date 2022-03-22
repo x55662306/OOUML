@@ -10,22 +10,43 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
 import javax.swing.JPanel;
 
+import mode.BaseMode;
+import mode.ClassMode;
+import shape.BaseItem;
+import shape.BaseLine;
+import shape.BaseShape;
+
 public class DisplayGraphics extends JPanel
 {
-	public ArrayList<BaseShape> shapeList = new ArrayList();
-	public ArrayList<BaseLine> lineList = new ArrayList();
+	public ArrayList<BaseItem> itemList;
+	public ArrayList<BaseShape> shapeList;
+	public ArrayList<BaseLine> lineList;
+	private BaseShapeComparator shapeCmp;
+	private BaseLineComparator lineCmp;
+	private BaseItemComparator itemCmp;
+	private int idCnt;
 	
-	BaseMode mode;
+	public BaseMode mode;
 	
 	DisplayGraphics()
 	{
-		mode = new ClassMode(this);		
+		 
+		mode = new BaseMode(this);	
+		itemList = new ArrayList<BaseItem>();
+		shapeList = new ArrayList<BaseShape>();
+		lineList = new ArrayList<BaseLine>();
+		itemCmp = new BaseItemComparator();
+		shapeCmp = new BaseShapeComparator();
+		lineCmp = new BaseLineComparator();
+		idCnt = -1;
+		
 		addMouseListener( new MouseAdapter()
 		{
 			@Override
@@ -51,35 +72,81 @@ public class DisplayGraphics extends JPanel
 		});
 	}
 	
+	public void sortDepth()
+	{
+		
+	}
+	
 	@Override
     protected void paintComponent (Graphics g) 
 	{
 		super.paintComponent(g);
-		//Graphics2D g2d = (Graphics2D)g;
-		//g2d.clearRect(0, 0, this.getWidth(), this.getHeight());
-		for(int i=0; i<shapeList.size(); i++)
-			shapeList.get(i).paintOnCanvas();
+		
+		itemList.sort(itemCmp);
+		
+		for(int i=0; i<itemList.size(); i++)
+			itemList.get(i).paintOnCanvas((Graphics2D)g);
+		
+		/*
+		shapeList.sort(shapeCmp);
+		lineList.sort(lineCmp);
+		
+		for(int i=0; i<shapeList.size(); i++) 
+			shapeList.get(i).paintOnCanvas((Graphics2D)g);
+		
 		for(int i=0; i<lineList.size(); i++)
-			lineList.get(i).paintOnCanvas();
+			lineList.get(i).paintOnCanvas((Graphics2D)g);
+		*/
+		/*
+		for(int i=0; i<depthList.size(); i++) 
+			shapeList.get(depthList.get(i)).paintOnCanvas((Graphics2D)g);
+		*/	
     }
 	
-	/*
-	@Override
-	public void paint(Graphics g) 
+	public int addId()
 	{
-		
-		System.out.println(shapeList.size());
+		idCnt++;
+		return idCnt;
+	}
+	
+	public BaseShape findShapeInList(int id)
+	{
 		for(int i=0; i<shapeList.size(); i++)
 		{
-			shapeList.get(i).paintOnCanvas();
+			BaseShape shape = shapeList.get(i).findShape(id);
+			if(shape != null)
+				return shape;
 		}
-		
-			
+		return null;
 	}
-	*/
 	
-	public void myRepaint()
+	
+	class BaseShapeComparator implements Comparator<BaseShape> 
 	{
-		
+		@Override
+		public int compare(BaseShape arg0, BaseShape arg1) 
+		{
+			return -(arg0.getDepth()-arg1.getDepth());
+		}
 	}
+	
+	class BaseLineComparator implements Comparator<BaseLine> 
+	{
+		@Override
+		public int compare(BaseLine arg0, BaseLine arg1) 
+		{
+			return -(arg0.getDepth()-arg1.getDepth());
+		}
+	}
+	
+	class BaseItemComparator implements Comparator<BaseItem> 
+	{
+		@Override
+		public int compare(BaseItem arg0, BaseItem arg1) 
+		{
+			return -(arg0.getDepth()-arg1.getDepth());
+		}
+	}
+	
+	
 }
